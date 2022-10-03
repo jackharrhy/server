@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  now:
+    image: ghcr.io/jackharrhy/now:latest
+    build: .
+    volumes:
+      - ./data:/data
+    environment:
+      - NOW_TOKEN=nowtoken
+      - NOW_DB_LOCATION=/data/now.db
+    ports:
+      - 127.0.0.1:3000:3000

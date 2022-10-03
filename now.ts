@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { prettyJSON } from "hono/pretty-json";
+import { logger } from "hono/logger";
 import { Database } from "bun:sqlite";
 
 const token = process.env.NOW_TOKEN || "nowtoken";
@@ -25,6 +26,7 @@ const latestNowEntry = () =>
 
 const app = new Hono();
 
+app.use("*", logger());
 app.use("*", prettyJSON());
 app.get("/", (c) => c.json(latestNowEntry()));
 

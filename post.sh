@@ -1,4 +1,3 @@
-echo $1
 curl \
   -X POST \
   -H "Authorization: Bearer $NOW_TOKEN" \
