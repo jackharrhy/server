@@ -8,6 +8,12 @@ const dbLocation = process.env.NOW_DB_LOCATION || "now.db";
 
 const db = new Database(dbLocation);
 
+type Now = {
+  id: number;
+  time: string;
+  content: string;
+};
+
 db.run(
   "CREATE TABLE IF NOT EXISTS now (id INTEGER PRIMARY KEY AUTOINCREMENT, time TEXT, content TEXT)"
 );
@@ -22,7 +28,9 @@ const insertNowEntry = (content: string) => {
 };
 
 const latestNowEntry = () =>
-  db.query("SELECT * FROM now ORDER BY time DESC LIMIT 1").all()[0];
+  db
+    .query("SELECT id, time, content FROM now ORDER BY time DESC LIMIT 1")
+    .all()[0] as Now;
 
 const app = new Hono();
 
@@ -42,6 +50,11 @@ app.post("/", async (c) => {
   const content = await c.req.text();
   if (content.length === 0) {
     return c.text("Empty content", 400);
+  }
+
+  const latest = latestNowEntry();
+  if (latest.content === content) {
+    return c.text("Same content", 400);
   }
 
   insertNowEntry(content);
