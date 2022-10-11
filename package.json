@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "hono": "^2.2.3"
+    "hono": "^2.2.5"
   },
   "devDependencies": {
     "bun-types": "^0.1.11"
