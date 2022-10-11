@@ -1,3 +1,4 @@
+import { marked } from "marked";
 import { Hono } from "hono";
 import { token } from "~/config";
 import type { Now } from "~/db";
@@ -12,10 +13,12 @@ const insertNowEntry = (content: string) => {
   insert.run({ $time: time, $content: content });
 };
 
-const latestNowEntry: () => Now | undefined = () =>
-  db
+const latestNowEntry: () => (Now & { html: string }) | undefined = () => {
+  const dbNow = db
     .query("SELECT id, time, content FROM now ORDER BY time DESC LIMIT 1")
     .all()[0];
+  return { ...dbNow, html: marked.parse(dbNow.content) };
+};
 
 export const now = new Hono();
 
