@@ -4,6 +4,8 @@ import { token } from "~/config";
 import type { Now } from "~/db";
 import { db } from "~/db";
 
+marked.setOptions({ gfm: true });
+
 const insert = db.prepare(
   "INSERT INTO now (time, content) VALUES ($time, $content)"
 );
