@@ -1,22 +1,7 @@
 import { Hono } from "hono";
-import { prettyJSON } from "hono/pretty-json";
-import { logger } from "hono/logger";
-import { Database } from "bun:sqlite";
-
-const token = process.env.NOW_TOKEN || "nowtoken";
-const dbLocation = process.env.NOW_DB_LOCATION || "now.db";
-
-const db = new Database(dbLocation);
-
-type Now = {
-  id: number;
-  time: string;
-  content: string;
-};
-
-db.run(
-  "CREATE TABLE IF NOT EXISTS now (id INTEGER PRIMARY KEY AUTOINCREMENT, time TEXT, content TEXT)"
-);
+import { token } from "~/config";
+import type { Now } from "~/db";
+import { db } from "~/db";
 
 const insert = db.prepare(
   "INSERT INTO now (time, content) VALUES ($time, $content)"
@@ -27,18 +12,16 @@ const insertNowEntry = (content: string) => {
   insert.run({ $time: time, $content: content });
 };
 
-const latestNowEntry = () =>
+const latestNowEntry: () => Now | undefined = () =>
   db
     .query("SELECT id, time, content FROM now ORDER BY time DESC LIMIT 1")
-    .all()[0] as Now;
+    .all()[0];
 
-const app = new Hono();
+export const now = new Hono();
 
-app.use("*", logger());
-app.use("*", prettyJSON());
-app.get("/", (c) => c.json(latestNowEntry()));
+now.get("/", (c) => c.json(latestNowEntry()));
 
-app.post("/", async (c) => {
+now.post("/", async (c) => {
   // TODO figure out why we can't use basicAuth here
   // it seems to consume the body, therefore req.text()
   // resolves to an empty string
@@ -53,12 +36,10 @@ app.post("/", async (c) => {
   }
 
   const latest = latestNowEntry();
-  if (latest.content === content) {
+  if (latest !== undefined && latest.content === content) {
     return c.text("Same content", 400);
   }
 
   insertNowEntry(content);
   return c.json(latestNowEntry());
 });
-
-export default app;
